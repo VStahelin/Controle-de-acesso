@@ -6,8 +6,8 @@ Servo s;                      // Variável Servo
 int pos;                      // Posição Servo
 int rightTrigPin = 8;             // Trigger
 int righEchoPin = 9;             // Echo
-int leftTrigPin = 11;             // Trigger
-int leftEchoPin = 12;             // Echo
+int leftTrigPin = 12;             // Trigger
+int leftEchoPin = 13;             // Echo
 long duration, cm;              // Distancia
 int movimentation[1];
 int movimentationDirection [1];
