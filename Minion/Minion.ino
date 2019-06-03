@@ -9,10 +9,11 @@ int righEchoPin = 9;             // Echo
 int leftTrigPin = 11;             // Trigger
 int leftEchoPin = 12;             // Echo
 long duration, cm;              // Distancia
+int movimentation[1];
+int movimentationDirection [1];
 
 void setup() {
   Serial.begin (9600);
-
   pinMode(rightTrigPin, OUTPUT);
   pinMode(righEchoPin, INPUT);
   pinMode(leftTrigPin, OUTPUT);
@@ -22,19 +23,31 @@ void setup() {
 
   s.attach(SERVO);
   s.write(0); 
+  movimentation[0] = 0;
+  movimentation[1] = 0;
 }
 
-//Cleam this code
+//TODO: Clean/refactor the code and translate everything into English
+//TODO: People counter
 
 void loop() {
-  //Serial.println(checkingPresence(rightSensor()));
-  //Serial.println(checkingPresence(leftSensor()));
-  
-  
   if (pass()) {
     Serial.println("Authenticated");
     Serial.println("Open the DOOR");
     servoActionCounterClockwise();
+    delay(1000);
+    orientation();
+    while ( movimentationDirection[0] == 0 ) {
+        if( movimentationDirection[1] == 1 ){
+          Serial.println("Someone Entered"); 
+          movimentationDirection[0] = 1;
+        } else if( movimentationDirection[1] == 2 ) {
+          Serial.println("Someone Left"); 
+          movimentationDirection[0] = 1;
+        } else {
+          orientation();
+        }
+    }
     delay(5000);
     Serial.println("Closing the DOOR");
     servoActionClockwise();
@@ -44,6 +57,45 @@ void loop() {
   }
 }
 
+void orientation(){
+  movimentation[0] = 0;
+  movimentation[1] = 0;
+  
+  if(checkingPresence(rightSensor())){
+    Serial.println("Direita");
+    movimentation[0] = 1;
+    delay(50);
+    if(checkingPresence(leftSensor())){
+      Serial.println("Esquerda");
+      movimentation[1] = 2;
+    }
+    delay(100);
+  }else if(checkingPresence(leftSensor())){
+    Serial.println("Left");
+    movimentation[0] = 2;
+    delay(50);
+    if(checkingPresence(rightSensor())){
+      Serial.println("Rigth");
+      movimentation[1] = 1;
+    }
+    delay(500);
+  }
+  
+  if ( movimentation[0] == 0 && movimentation[1] == 0){
+    Serial.println(" No one passed ");
+    movimentationDirection[0] = 0; // Verificador se realmente houve passagem
+    movimentationDirection[1] = 0; // Indicador do sentido da passagem, 1 = Direita, 2 = Esquerda
+    
+  } else {
+    movimentationDirection[0] = 0;
+    if( movimentation[0] == 1 && movimentation[1] == 2 ){
+      movimentationDirection[1] = 1;
+    }
+    if( movimentation[0] == 2 && movimentation[1] == 1 ){
+      movimentationDirection[1] = 2; 
+    } 
+  }
+}
 
 bool pass() {
    #define tempoDebounce 50 //(tempo para eliminar o efeito Bounce EM MILISEGUNDOS)
@@ -115,11 +167,11 @@ long leftSensor(){
 }
 
 boolean checkingPresence(long distance){
-  if( cm > 10 && cm < 60 ){
-    delay(500);
+  if( cm > 0 && cm < 60 ){
+    delay(250);
     return true; 
   } else {
-    delay(500);
+    delay(250);
     return false;
   }
 }
